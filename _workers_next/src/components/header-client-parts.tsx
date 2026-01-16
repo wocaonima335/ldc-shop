@@ -10,18 +10,23 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 
-export function HeaderLogo({ adminName, shopNameOverride }: { adminName?: string; shopNameOverride?: string | null }) {
+export function HeaderLogo({ adminName, shopNameOverride, shopLogoOverride }: { adminName?: string; shopNameOverride?: string | null; shopLogoOverride?: string | null }) {
     const { t } = useI18n()
     const override = shopNameOverride?.trim()
+    const logoUrl = shopLogoOverride?.trim()
     const shopName = adminName
         ? t('common.shopNamePattern', { name: adminName, appName: t('common.appName') })
         : t('common.appName')
 
     return (
         <Link href="/" className="flex items-center gap-2 min-w-0 group text-muted-foreground hover:text-primary transition-colors">
-            <div className="h-8 w-8 rounded-lg bg-foreground flex items-center justify-center transition-all duration-300">
-                <ShoppingBag className="h-4 w-4 text-background" />
-            </div>
+            {logoUrl ? (
+                <img src={logoUrl} alt="Logo" className="h-8 w-8 rounded-lg object-contain" />
+            ) : (
+                <div className="h-8 w-8 rounded-lg bg-foreground flex items-center justify-center transition-all duration-300">
+                    <ShoppingBag className="h-4 w-4 text-background" />
+                </div>
+            )}
             <span className="text-sm font-semibold tracking-tight truncate max-w-[140px] sm:max-w-[220px] md:max-w-none">
                 {override || shopName}
             </span>

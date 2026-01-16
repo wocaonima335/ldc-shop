@@ -249,6 +249,7 @@ export async function getProduct(id: string) {
             isHot: products.isHot,
             isActive: products.isActive,
             purchaseLimit: products.purchaseLimit,
+            purchaseWarning: products.purchaseWarning,
             stock: sql<number>`count(case when ${cards.id} IS NOT NULL AND COALESCE(${cards.isUsed}, 0) = 0 AND (${cards.reservedAt} IS NULL OR ${cards.reservedAt} < ${fiveMinutesAgo}) then 1 end)`,
             locked: sql<number>`count(case when ${cards.id} IS NOT NULL AND COALESCE(${cards.isUsed}, 0) = 0 AND (${cards.reservedAt} >= ${fiveMinutesAgo}) then 1 end)`
         })

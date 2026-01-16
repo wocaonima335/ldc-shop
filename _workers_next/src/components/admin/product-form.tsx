@@ -13,6 +13,7 @@ import { useI18n } from "@/lib/i18n/context"
 export default function ProductForm({ product, categories = [] }: { product?: any; categories?: Array<{ name: string }> }) {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const [showWarning, setShowWarning] = useState(!!product?.purchaseWarning)
     const { t } = useI18n()
 
     async function handleSubmit(formData: FormData) {
@@ -36,6 +37,22 @@ export default function ProductForm({ product, categories = [] }: { product?: an
             <CardContent>
                 <form action={handleSubmit} className="space-y-4">
                     {product && <input type="hidden" name="id" value={product.id} />}
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="slug">{t('admin.productForm.slugLabel')}</Label>
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground">/buy/</span>
+                            <Input 
+                                id="slug" 
+                                name="slug" 
+                                defaultValue={product?.id || ''} 
+                                placeholder={t('admin.productForm.slugPlaceholder')}
+                                pattern="^[a-zA-Z0-9_-]+$"
+                                className="flex-1"
+                            />
+                        </div>
+                        <p className="text-xs text-muted-foreground">{t('admin.productForm.slugHint')}</p>
+                    </div>
 
                     <div className="grid gap-2">
                         <Label htmlFor="name">{t('admin.productForm.nameLabel')}</Label>
@@ -83,6 +100,31 @@ export default function ProductForm({ product, categories = [] }: { product?: an
                             className="h-4 w-4 accent-primary"
                         />
                         <Label htmlFor="isHot" className="cursor-pointer">{t('admin.productForm.isHotLabel')}</Label>
+                    </div>
+
+                    <div className="space-y-2 p-3 border rounded-md bg-muted/30">
+                        <div className="flex items-center gap-2">
+                            <input
+                                id="showWarning"
+                                type="checkbox"
+                                checked={showWarning}
+                                onChange={(e) => setShowWarning(e.target.checked)}
+                                className="h-4 w-4 accent-primary"
+                            />
+                            <Label htmlFor="showWarning" className="cursor-pointer">{t('admin.productForm.purchaseWarningLabel')}</Label>
+                        </div>
+                        {showWarning && (
+                            <div className="grid gap-2">
+                                <textarea
+                                    id="purchaseWarning"
+                                    name="purchaseWarning"
+                                    defaultValue={product?.purchaseWarning || ''}
+                                    placeholder={t('admin.productForm.purchaseWarningPlaceholder')}
+                                    className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                />
+                                <p className="text-xs text-muted-foreground">{t('admin.productForm.purchaseWarningHint')}</p>
+                            </div>
+                        )}
                     </div>
 
                     <div className="grid gap-2">

@@ -4,13 +4,11 @@ import { useState } from "react"
 import { useI18n } from "@/lib/i18n/context"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Eye, EyeOff, ArrowUp, ArrowDown, TrendingUp, ShoppingCart, CreditCard, Package, Users } from "lucide-react"
-import { deleteProduct, toggleProductStatus, reorderProduct, saveShopName, saveLowStockThreshold, saveCheckinReward, saveCheckinEnabled, saveNoIndex } from "@/actions/admin"
+import { Plus, Eye, EyeOff, ArrowUp, ArrowDown } from "lucide-react"
+import { deleteProduct, toggleProductStatus, reorderProduct } from "@/actions/admin"
 import { toast } from "sonner"
 
 interface Product {
@@ -25,43 +23,15 @@ interface Product {
     sortOrder: number
 }
 
-interface Stats {
-    today: { count: number; revenue: number }
-    week: { count: number; revenue: number }
-    month: { count: number; revenue: number }
-    total: { count: number; revenue: number }
-}
-
 interface AdminProductsContentProps {
     products: Product[]
-    stats: Stats
-    shopName: string | null
-    visitorCount: number
     lowStockThreshold: number
-    checkinReward: number
-    checkinEnabled: boolean
-    noIndexEnabled: boolean
 }
 
-export function AdminProductsContent({ products, stats, shopName, visitorCount, lowStockThreshold, checkinReward, checkinEnabled, noIndexEnabled }: AdminProductsContentProps) {
+export function AdminProductsContent({ products, lowStockThreshold }: AdminProductsContentProps) {
     const { t } = useI18n()
 
-    // State
-    const [shopNameValue, setShopNameValue] = useState(shopName || '')
-    const [savingShopName, setSavingShopName] = useState(false)
-    const [thresholdValue, setThresholdValue] = useState(String(lowStockThreshold || 5))
-    const [savingThreshold, setSavingThreshold] = useState(false)
-    // Use distinct name to avoid ANY collision
-    const [rewardValue, setRewardValue] = useState(String(checkinReward || 10))
-    const [savingReward, setSavingReward] = useState(false)
-    const [enabledCheckin, setEnabledCheckin] = useState(checkinEnabled)
-    const [savingEnabled, setSavingEnabled] = useState(false)
-    const [enabledNoIndex, setEnabledNoIndex] = useState(noIndexEnabled)
-    const [savingNoIndex, setSavingNoIndex] = useState(false)
-
-    // Derived state directly to avoid Hook complexity/errors
-    const threshold = Number.parseInt(thresholdValue, 10) || 5
-    const lowStockCount = (products || []).filter(p => p.stockCount <= threshold).length
+    const threshold = lowStockThreshold || 5
 
     const handleDelete = async (id: string) => {
         if (!confirm(t('admin.products.confirmDelete'))) return
@@ -103,227 +73,11 @@ export function AdminProductsContent({ products, stats, shopName, visitorCount, 
         }
     }
 
-    const handleSaveShopName = async () => {
-        const trimmed = shopNameValue.trim()
-        if (!trimmed) {
-            toast.error(t('admin.settings.shopNameEmpty'))
-            return
-        }
-        setSavingShopName(true)
-        try {
-            await saveShopName(trimmed)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingShopName(false)
-        }
-    }
-
-    const handleSaveThreshold = async () => {
-        setSavingThreshold(true)
-        try {
-            await saveLowStockThreshold(thresholdValue)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingThreshold(false)
-        }
-    }
-
-    const handleSaveReward = async () => {
-        setSavingReward(true)
-        try {
-            await saveCheckinReward(rewardValue)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingReward(false)
-        }
-    }
-
-    const handleToggleCheckin = async (checked: boolean) => {
-        setSavingEnabled(true)
-        try {
-            await saveCheckinEnabled(checked)
-            setEnabledCheckin(checked)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingEnabled(false)
-        }
-    }
-
-    const handleToggleNoIndex = async (checked: boolean) => {
-        setSavingNoIndex(true)
-        try {
-            await saveNoIndex(checked)
-            setEnabledNoIndex(checked)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingNoIndex(false)
-        }
-    }
-
     return (
         <div className="space-y-6">
-            {/* Shop Settings */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>{t('admin.settings.title')}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                    <div className="grid gap-2 md:max-w-xl">
-                        <Label htmlFor="shop-name">{t('admin.settings.shopName')}</Label>
-                        <Input
-                            id="shop-name"
-                            value={shopNameValue}
-                            onChange={(e) => setShopNameValue(e.target.value)}
-                            placeholder={t('admin.settings.shopNamePlaceholder')}
-                        />
-                    </div>
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <Button onClick={handleSaveShopName} disabled={savingShopName}>
-                            {savingShopName ? t('common.processing') : t('admin.settings.save')}
-                        </Button>
-                        <div className="flex items-center gap-2">
-                            <Input
-                                type="number"
-                                className="w-20"
-                                value={thresholdValue}
-                                onChange={(e) => setThresholdValue(e.target.value)}
-                                placeholder="5"
-                                title={t('admin.settings.lowStockThreshold')}
-                            />
-                            <Button variant="outline" onClick={handleSaveThreshold} disabled={savingThreshold}>
-                                {savingThreshold ? t('common.processing') : t('admin.settings.saveThreshold')}
-                            </Button>
-                        </div>
-
-                        <div className="flex items-center gap-3 border-l pl-3 ml-2">
-                            <div className="flex items-center gap-2">
-                                <Label htmlFor="checkin-enable" className="cursor-pointer">{t('admin.settings.checkin.title')}</Label>
-                                <Button
-                                    id="checkin-enable"
-                                    variant={enabledCheckin ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => handleToggleCheckin(!enabledCheckin)}
-                                    disabled={savingEnabled}
-                                    className={enabledCheckin ? "bg-green-600 hover:bg-green-700" : ""}
-                                >
-                                    {enabledCheckin ? t('admin.settings.checkin.enabled') : t('admin.settings.checkin.disabled')}
-                                </Button>
-                            </div>
-                            {enabledCheckin && (
-                                <div className="flex items-center gap-2">
-                                    <Input
-                                        type="number"
-                                        className="w-20"
-                                        value={rewardValue}
-                                        onChange={(e) => setRewardValue(e.target.value)}
-                                        placeholder="10"
-                                        title={t('admin.settings.checkin.rewardTooltip')}
-                                    />
-                                    <Button variant="outline" onClick={handleSaveReward} disabled={savingReward}>
-                                        {savingReward ? t('common.processing') : t('admin.settings.checkin.saveReward')}
-                                    </Button>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="flex items-center gap-2 border-l pl-3 ml-2">
-                            <Label htmlFor="noindex-enable" className="cursor-pointer whitespace-nowrap">{t('admin.settings.noIndex.title')}</Label>
-                            <Button
-                                id="noindex-enable"
-                                variant={enabledNoIndex ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => handleToggleNoIndex(!enabledNoIndex)}
-                                disabled={savingNoIndex}
-                                className={enabledNoIndex ? "bg-orange-600 hover:bg-orange-700" : ""}
-                            >
-                                {enabledNoIndex ? t('admin.settings.noIndex.enabled') : t('admin.settings.noIndex.disabled')}
-                            </Button>
-                        </div>
-                    </div>
-
-                    <p className="text-xs text-muted-foreground">{t('admin.settings.shopNameHint')}</p>
-                </CardContent>
-            </Card>
-
-            {/* Dashboard Stats */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{t('admin.stats.today')}</CardTitle>
-                        <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats.today.count}</div>
-                        <p className="text-xs text-muted-foreground">{stats.today.revenue.toFixed(0)} {t('common.credits')}</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{t('admin.stats.week')}</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats.week.count}</div>
-                        <p className="text-xs text-muted-foreground">{stats.week.revenue.toFixed(0)} {t('common.credits')}</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{t('admin.stats.month')}</CardTitle>
-                        <CreditCard className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats.month.count}</div>
-                        <p className="text-xs text-muted-foreground">{stats.month.revenue.toFixed(0)} {t('common.credits')}</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{t('admin.stats.total')}</CardTitle>
-                        <Package className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats.total.count}</div>
-                        <p className="text-xs text-muted-foreground">{stats.total.revenue.toFixed(0)} {t('common.credits')}</p>
-                    </CardContent>
-                </Card>
-                <Link href="/admin/users" className="block">
-                    <Card className="hover:bg-accent/50 transition-colors">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">{t('admin.stats.visitors')}</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{visitorCount}</div>
-                            <p className="text-xs text-muted-foreground">{t('home.visitorCount', { count: visitorCount })}</p>
-                        </CardContent>
-                    </Card>
-                </Link>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{t('admin.stats.lowStock')}</CardTitle>
-                        <Package className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{lowStockCount}</div>
-                        <p className="text-xs text-muted-foreground">{t('admin.stats.lowStockHint', { threshold: Number.parseInt(thresholdValue, 10) || 5 })}</p>
-                    </CardContent>
-                </Card>
-            </div>
-
             {/* Products Table */}
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">{t('admin.products.title')}</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{t('common.productManagement')}</h1>
                 <Link href="/admin/product/new">
                     <Button>
                         <Plus className="h-4 w-4 mr-2" />
@@ -332,7 +86,7 @@ export function AdminProductsContent({ products, stats, shopName, visitorCount, 
                 </Link>
             </div>
 
-            <div className="rounded-md border bg-card">
+            <Card className="rounded-md border bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -393,7 +147,7 @@ export function AdminProductsContent({ products, stats, shopName, visitorCount, 
                                 <TableCell>
                                     <div className="flex items-center gap-2">
                                         <span>{product.stockCount}</span>
-                                        {product.stockCount <= (Number.parseInt(thresholdValue, 10) || 5) && (
+                                        {product.stockCount <= threshold && (
                                             <Badge variant="destructive" className="text-[10px]">{t('admin.products.lowStock')}</Badge>
                                         )}
                                     </div>
@@ -426,7 +180,7 @@ export function AdminProductsContent({ products, stats, shopName, visitorCount, 
                         ))}
                     </TableBody>
                 </Table>
-            </div>
+            </Card>
         </div>
     )
 }

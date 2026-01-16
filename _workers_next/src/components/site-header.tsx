@@ -30,10 +30,17 @@ export async function SiteHeader() {
     const isAdmin = user?.username && adminUsers.includes(user.username.toLowerCase()) || false
     const firstAdminName = rawAdminUsers[0]?.trim() // Get first admin name for branding
     let shopNameOverride: string | null = null
+    let shopLogoOverride: string | null = null
     try {
-        shopNameOverride = await getSetting('shop_name')
+        const [name, logo] = await Promise.all([
+            getSetting('shop_name'),
+            getSetting('shop_logo')
+        ])
+        shopNameOverride = name
+        shopLogoOverride = logo
     } catch {
         shopNameOverride = null
+        shopLogoOverride = null
     }
 
     let checkinEnabled = true
@@ -48,7 +55,7 @@ export async function SiteHeader() {
         <header className="sticky top-0 z-40 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-16 items-center gap-3">
                 <div className="flex items-center gap-4 md:gap-8 min-w-0">
-                    <HeaderLogo adminName={firstAdminName} shopNameOverride={shopNameOverride} />
+                    <HeaderLogo adminName={firstAdminName} shopNameOverride={shopNameOverride} shopLogoOverride={shopLogoOverride} />
                     <HeaderNav isAdmin={isAdmin} />
                 </div>
                 <div className="hidden md:flex flex-1 justify-center px-4">

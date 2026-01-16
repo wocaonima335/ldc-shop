@@ -32,6 +32,7 @@ interface Product {
     image: string | null
     category: string | null
     purchaseLimit?: number | null
+    purchaseWarning?: string | null
     isHot?: boolean | null
 }
 
@@ -69,6 +70,8 @@ export function BuyContent({
     const { t } = useI18n()
     const [shareUrl, setShareUrl] = useState('')
     const [quantity, setQuantity] = useState(1)
+    const [showWarningDialog, setShowWarningDialog] = useState(false)
+    const [warningConfirmed, setWarningConfirmed] = useState(false)
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -250,12 +253,47 @@ export function BuyContent({
                                                     {t('buy.modal.total')}: <span className="text-primary font-bold">{(Number(product.price) * quantity).toFixed(2)}</span>
                                                 </div>
                                             </div>
-                                            <BuyButton
-                                                productId={product.id}
-                                                price={product.price}
-                                                productName={product.name}
-                                                quantity={quantity}
-                                            />
+                                            {/* Purchase Warning Dialog */}
+                                            {product.purchaseWarning && !warningConfirmed ? (
+                                                <Dialog open={showWarningDialog} onOpenChange={setShowWarningDialog}>
+                                                    <DialogTrigger asChild>
+                                                        <Button className="w-full tech-button">
+                                                            {t('common.buyNow')}
+                                                        </Button>
+                                                    </DialogTrigger>
+                                                    <DialogContent>
+                                                        <DialogHeader>
+                                                            <DialogTitle className="flex items-center gap-2 text-amber-600">
+                                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                                </svg>
+                                                                {t('buy.warningTitle')}
+                                                            </DialogTitle>
+                                                        </DialogHeader>
+                                                        <div className="py-4 text-sm whitespace-pre-wrap">
+                                                            {product.purchaseWarning}
+                                                        </div>
+                                                        <div className="flex gap-2 justify-end">
+                                                            <Button variant="outline" onClick={() => setShowWarningDialog(false)}>
+                                                                {t('common.cancel')}
+                                                            </Button>
+                                                            <Button onClick={() => {
+                                                                setWarningConfirmed(true)
+                                                                setShowWarningDialog(false)
+                                                            }}>
+                                                                {t('buy.confirmWarning')}
+                                                            </Button>
+                                                        </div>
+                                                    </DialogContent>
+                                                </Dialog>
+                                            ) : (
+                                                <BuyButton
+                                                    productId={product.id}
+                                                    price={product.price}
+                                                    productName={product.name}
+                                                    quantity={quantity}
+                                                />
+                                            )}
                                         </div>
                                     ) : (
                                         lockedStockCount > 0 ? (

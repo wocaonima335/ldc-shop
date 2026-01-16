@@ -21,7 +21,24 @@ export async function checkAdmin() {
 export async function saveProduct(formData: FormData) {
     await checkAdmin()
 
-    const id = formData.get('id') as string || `prod_${Date.now()}`
+    const existingId = formData.get('id') as string
+    const customSlug = (formData.get('slug') as string)?.trim()
+    
+    // Use custom slug if provided, otherwise use existing id or generate new one
+    let id: string
+    if (existingId) {
+        // Editing existing product - use custom slug if different, otherwise keep existing
+        id = customSlug && customSlug !== existingId ? customSlug : existingId
+    } else {
+        // New product - use custom slug or generate
+        id = customSlug || `prod_${Date.now()}`
+    }
+    
+    // Validate slug format
+    if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
+        throw new Error("Slug can only contain letters, numbers, underscores and hyphens")
+    }
+    
     const name = formData.get('name') as string
     const description = formData.get('description') as string
     const price = formData.get('price') as string
@@ -30,6 +47,7 @@ export async function saveProduct(formData: FormData) {
     const image = formData.get('image') as string
     const purchaseLimit = formData.get('purchaseLimit') ? parseInt(formData.get('purchaseLimit') as string) : null
     const isHot = formData.get('isHot') === 'on'
+    const purchaseWarning = (formData.get('purchaseWarning') as string | null)?.trim() || null
 
     const doSave = async () => {
         // Auto-create category if it doesn't exist
@@ -51,6 +69,7 @@ export async function saveProduct(formData: FormData) {
             category,
             image,
             purchaseLimit,
+            purchaseWarning,
             isHot
         }).onConflictDoUpdate({
             target: products.id,
@@ -62,6 +81,7 @@ export async function saveProduct(formData: FormData) {
                 category,
                 image,
                 purchaseLimit,
+                purchaseWarning,
                 isHot
             }
         })
@@ -71,12 +91,15 @@ export async function saveProduct(formData: FormData) {
         await doSave()
     } catch (error: any) {
         const errorString = JSON.stringify(error)
-        if (errorString.includes('42703')) {
+        if (errorString.includes('42703') || errorString.includes('no such column')) {
             try {
                 await db.run(sql.raw(`ALTER TABLE products ADD COLUMN compare_at_price TEXT`));
             } catch { /* duplicate column */ }
             try {
                 await db.run(sql.raw(`ALTER TABLE products ADD COLUMN is_hot INTEGER DEFAULT 0`));
+            } catch { /* duplicate column */ }
+            try {
+                await db.run(sql.raw(`ALTER TABLE products ADD COLUMN purchase_warning TEXT`));
             } catch { /* duplicate column */ }
             await doSave()
         } else {
@@ -204,6 +227,33 @@ export async function saveShopName(rawName: string) {
 
     revalidatePath('/')
     revalidatePath('/admin')
+}
+
+export async function saveShopDescription(rawDesc: string) {
+    await checkAdmin()
+
+    const desc = rawDesc.trim()
+    if (desc.length > 200) {
+        throw new Error("Description is too long")
+    }
+
+    await setSetting('shop_description', desc)
+    revalidatePath('/')
+    revalidatePath('/admin')
+}
+
+export async function saveShopLogo(logoUrl: string) {
+    await checkAdmin()
+
+    const url = logoUrl.trim()
+    if (url && url.length > 500) {
+        throw new Error("Logo URL is too long")
+    }
+
+    await setSetting('shop_logo', url)
+    revalidatePath('/')
+    revalidatePath('/admin')
+    revalidatePath('/admin/settings')
 }
 
 export async function deleteReview(reviewId: number) {

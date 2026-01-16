@@ -13,6 +13,7 @@ export const products = sqliteTable('products', {
     isActive: integer('is_active', { mode: 'boolean' }).default(true),
     sortOrder: integer('sort_order').default(0),
     purchaseLimit: integer('purchase_limit'),
+    purchaseWarning: text('purchase_warning'), // Optional warning message shown before purchase
     createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()), // Use integer timestamp
 });
 

@@ -9,6 +9,8 @@
         "logout": "退出登录",
         "admin": "管理",
         "adminTitle": "LDC 管理",
+        "storeSettings": "店铺设置",
+        "productManagement": "商品管理",
         "dashboardProducts": "店铺和商品管理",
         "ordersRefunds": "订单管理",
         "loggedInAs": "当前登录",
@@ -99,6 +101,8 @@
             "payWithPoints": "积分支付",
             "proceedPayment": "前往支付"
         },
+        "warningTitle": "购买提醒",
+        "confirmWarning": "我已了解，继续购买",
         "paymentSuccessPoints": "积分支付成功！"
     },
     "search": {
@@ -178,7 +182,15 @@
             "title": "商店设置",
             "shopName": "商店名称",
             "shopNamePlaceholder": "请输入商店名称",
+            "shopDescription": "商店描述",
+            "shopDescPlaceholder": "请输入商店描述（SEO用途）",
+            "shopLogo": "商店Logo",
+            "shopLogoPlaceholder": "https://example.com/logo.png",
+            "shopLogoHint": "同时作为网站Logo和Favicon使用，建议使用正方形图片。",
+            "logoPreview": "预览",
             "shopNameHint": "会显示在顶部导航与页面标题。",
+            "saveShopName": "保存名称",
+            "saveShopDesc": "保存描述",
             "save": "保存",
             "lowStockThreshold": "库存预警阈值",
             "saveThreshold": "保存阈值",
@@ -372,6 +384,9 @@
         "productForm": {
             "addTitle": "添加商品",
             "editTitle": "编辑商品",
+            "slugLabel": "商品链接",
+            "slugPlaceholder": "my-product（留空自动生成）",
+            "slugHint": "只能包含字母、数字、下划线和连字符。保存后不建议修改。",
             "nameLabel": "商品名称",
             "namePlaceholder": "请输入商品名称",
             "descLabel": "商品描述",
@@ -388,6 +403,9 @@
             "saveButton": "保存商品",
             "purchaseLimitLabel": "限购数量（累计）",
             "purchaseLimitPlaceholder": "不填或 0 为无限购",
+            "purchaseWarningLabel": "购买前提醒弹窗",
+            "purchaseWarningPlaceholder": "请输入需要提醒用户的内容，如：请确认您已阅读商品描述...",
+            "purchaseWarningHint": "开启后，用户点击购买时会先弹出此提醒，确认后才能继续购买。",
             "saving": "保存中..."
         }
     },
